@@ -13,7 +13,7 @@ public class GameManager : MonoBehaviour
     [Header("Timer")]
     public float totalTime = 300f;
     private float timeRemaining;
-    private bool timerRunning = false;
+    private bool timerRunning = true;  // Changed to true - starts immediately
     private float totalElapsedTime = 0f;
 
     [Header("Time Periods")]
@@ -41,7 +41,6 @@ public class GameManager : MonoBehaviour
     public GameObject gameOverPanel;
     public TextMeshProUGUI finalScoreText;
     public TextMeshProUGUI highScoreText;
-    public GameObject homePanel;
 
     void Awake()
     {
@@ -53,11 +52,13 @@ public class GameManager : MonoBehaviour
     {
         timeRemaining = totalTime;
 
-        if (homePanel != null) homePanel.SetActive(false);
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
 
-        ShowHomeScreen();
         UpdateUI();
+        
+        // Lock cursor for gameplay
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     void Update()
@@ -193,7 +194,7 @@ public class GameManager : MonoBehaviour
         speedBoostTimer = 15f;
         if (playerController != null)
             playerController.moveSpeed = 10f;
-        ShowReward(" Speed Boost 15 Seconds!");
+        ShowReward("Speed Boost 15 Seconds!");
     }
 
     void ShowReward(string message)
@@ -237,63 +238,40 @@ public class GameManager : MonoBehaviour
     }
 
     void GameOver()
-{
-    if (score > highScore)
     {
-        highScore = score;
-        PlayerPrefs.SetInt("HighScore", highScore);
+        if (score > highScore)
+        {
+            highScore = score;
+            PlayerPrefs.SetInt("HighScore", highScore);
+        }
+
+        if (gameOverPanel != null) gameOverPanel.SetActive(true);
+        if (finalScoreText != null) finalScoreText.text = "Final Score: " + score;
+        if (highScoreText != null) highScoreText.text = "High Score: " + highScore;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        Debug.Log("Game Over! Score: " + score);
     }
 
-    if (gameOverPanel != null) gameOverPanel.SetActive(true);
-    if (finalScoreText != null) finalScoreText.text = "Final Score: " + score;
-    if (highScoreText != null) highScoreText.text = "High Score: " + highScore;
-
-    // Unlock cursor for game over buttons
-    Cursor.lockState = CursorLockMode.None;
-    Cursor.visible = true;
-
-    Debug.Log("Game Over! Score: " + score);
-}
-
-   public void StartGame()
-{
-    score = 0;
-    timeRemaining = totalTime;
-    totalElapsedTime = 0f;
-    currentPeriod = 0;
-    pointsDoubled = false;
-    speedBoostActive = false;
-    rewardsGiven = 0;
-    lastRewardScore = 0;
-    timerRunning = true;
-
-    if (homePanel != null) homePanel.SetActive(false);
-    if (gameOverPanel != null) gameOverPanel.SetActive(false);
-
-    // Lock cursor back for gameplay
-    Cursor.lockState = CursorLockMode.Locked;
-    Cursor.visible = false;
-
-    UpdateUI();
-}
-
-    public void RestartGame() => StartGame();
-
-    public void GoToMainMenu()
+    public void RestartGame()
     {
-        timerRunning = false;
+        score = 0;
+        timeRemaining = totalTime;
+        totalElapsedTime = 0f;
+        currentPeriod = 0;
+        pointsDoubled = false;
+        speedBoostActive = false;
+        rewardsGiven = 0;
+        lastRewardScore = 0;
+        timerRunning = true;
+
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
-        ShowHomeScreen();
-    }
 
-    void ShowHomeScreen()
-{
-    if (homePanel != null) homePanel.SetActive(true);
-    if (highScoreText != null) 
-        highScoreText.text = "High Score: " + highScore;
-    
-    // Unlock cursor so player can click buttons
-    Cursor.lockState = CursorLockMode.None;
-    Cursor.visible = true;
-}
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        UpdateUI();
+    }
 }
